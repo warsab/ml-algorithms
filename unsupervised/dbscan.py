@@ -21,11 +21,11 @@ When to use DBSCAN:
 #================================================================ Template:
 #====== Importing needed libraries:
 from sklearn.cluster import DBSCAN
-from sklearn.datasets import make_classification
+from sklearn.datasets import make_blobs
 import matplotlib.pyplot as plt
 
 #====== Generate some example data (replace this with your actual data):
-X, _ = make_classification(n_samples=1000, n_features=2, n_classes=3, n_clusters_per_class=1, random_state=42)
+X, _ = make_blobs(n_samples=1000, centers=3, n_features=2, cluster_std=0.60, random_state=42)
 
 #====== Or you can use the below to generate with your data:
 # X = IDM_df[['feature1', 'feature2']].values  # Replace 'feature1' and 'feature2' with the names of your features

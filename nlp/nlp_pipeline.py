@@ -22,66 +22,90 @@ When to use NLP:
 
 #================================================================ Template:
 #====== Importing needed libraries:
-import nltk
-from nltk.tokenize import word_tokenize
-from nltk.corpus import stopwords
+import random
+import re
+
+import pandas as pd
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.model_selection import train_test_split
 from sklearn.naive_bayes import MultinomialNB
-from sklearn.metrics import accuracy_score
+from sklearn.metrics import accuracy_score, classification_report
 
 #====== Example NLP Pipeline:
-# Load data
-# Perform text preprocessing (tokenization, lowercasing, stop word removal, etc.)
-# Convert text data into numerical features (e.g., using TF-IDF)
-# Split the dataset into training and testing sets
-# Train a machine learning model on the training data
-# Evaluate the model on the testing data
+# 1. Load the data
+# 2. Preprocess the text (lowercase, strip punctuation, drop stop words)
+# 3. Convert text into numerical features (TF-IDF)
+# 4. Split into training and testing sets
+# 5. Train a classifier
+# 6. Evaluate
 
-# Importing needed libraries
-import nltk
-from nltk.corpus import stopwords
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.model_selection import train_test_split
-from sklearn.naive_bayes import MultinomialNB
-from sklearn.metrics import accuracy_score
-import pandas as pd
+#====== Generate some example data (replace this with your actual data):
+# For a real corpus, load it instead, e.g.:
+#   reviews_df = pd.read_csv("reviews.csv")   # columns: review, sentiment
+random.seed(42)
 
-# Download NLTK resources
-nltk.download('stopwords')
-nltk.download('punkt')
+OPENERS = ["The film", "This movie", "The story", "The script", "The cast",
+           "The direction", "The soundtrack", "The pacing"]
+POSITIVE = ["was brilliant", "was superb", "was genuinely moving", "was excellent",
+            "kept me hooked", "was beautifully crafted", "exceeded expectations"]
+NEGATIVE = ["was dull", "was a mess", "dragged badly", "was disappointing",
+            "felt lifeless", "wasted its premise", "fell completely flat"]
+CLOSERS = ["and I would watch it again.", "from start to finish.", "throughout.",
+           "in almost every scene.", "for the entire runtime.", ""]
 
-# Load IMDb movie reviews dataset
-imdb_df = pd.read_csv('imdb_reviews.csv')
+rows = []
+for _ in range(300):
+    positive = random.random() < 0.5
+    phrase = random.choice(POSITIVE if positive else NEGATIVE)
+    text = f"{random.choice(OPENERS)} {phrase} {random.choice(CLOSERS)}".strip()
+    rows.append({"review": text, "sentiment": "positive" if positive else "negative"})
 
-# Text Preprocessing
-stop_words = set(stopwords.words('english'))
+reviews_df = pd.DataFrame(rows)
+
+#====== Text preprocessing:
+# NLTK ships a curated stop-word list. It needs a one-off corpus download, so we
+# fall back to a minimal inline list when the data (or the network) is unavailable.
+try:
+    import nltk
+    nltk.download("stopwords", quiet=True)
+    from nltk.corpus import stopwords
+    STOP_WORDS = set(stopwords.words("english"))
+except Exception:
+    STOP_WORDS = {"the", "a", "an", "and", "or", "but", "is", "was", "were", "be",
+                  "been", "it", "its", "this", "that", "i", "would", "from", "in",
+                  "for", "of", "to", "with", "on", "at", "as", "almost"}
+
+
 def preprocess_text(text):
-    tokens = nltk.word_tokenize(text.lower())  # Tokenization and lowercasing
-    tokens = [token for token in tokens if token.isalnum()]  # Remove punctuation
-    tokens = [token for token in tokens if token not in stop_words]  # Remove stop words
-    return ' '.join(tokens)
+    """Lowercase, strip punctuation, and drop stop words."""
+    tokens = re.findall(r"[a-z0-9]+", text.lower())
+    return " ".join(token for token in tokens if token not in STOP_WORDS)
 
-imdb_df['cleaned_review'] = imdb_df['review'].apply(preprocess_text)
 
-# Convert text data into numerical features using TF-IDF
+reviews_df["cleaned_review"] = reviews_df["review"].apply(preprocess_text)
+
+#====== Convert text into numerical features using TF-IDF:
 tfidf_vectorizer = TfidfVectorizer(max_features=5000)
-X = tfidf_vectorizer.fit_transform(imdb_df['cleaned_review'])
-y = imdb_df['sentiment']
+X = tfidf_vectorizer.fit_transform(reviews_df["cleaned_review"])
+y = reviews_df["sentiment"]
 
-# Split the dataset into training and testing sets
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+#====== Split the dataset into training and testing sets:
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.2, random_state=42, stratify=y
+)
 
-# Train a Multinomial Naive Bayes classifier
+#====== Train a Multinomial Naive Bayes classifier:
 nb_classifier = MultinomialNB()
 nb_classifier.fit(X_train, y_train)
 
-# Predict sentiment on the testing data
+#====== Predict sentiment on the testing data:
 y_pred = nb_classifier.predict(X_test)
 
-# Evaluate the model
-accuracy = accuracy_score(y_test, y_pred)
-print("Accuracy:", accuracy)
+#====== Evaluate the model:
+# NOTE: the generated corpus above is trivially separable, so this scores ~100%.
+# Real text data will not. Swap in a genuine dataset to see meaningful numbers.
+print("Accuracy:", accuracy_score(y_test, y_pred))
+print(classification_report(y_test, y_pred))
 
 
 #================================================================ Notes on Model construction:

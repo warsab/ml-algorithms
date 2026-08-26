@@ -11,6 +11,8 @@ written explanation of how the method works and when to reach for it.**
 <img src="https://img.shields.io/badge/scikit--learn-F7931E?style=for-the-badge&logo=scikit-learn&logoColor=white" />
 <img src="https://img.shields.io/badge/License-MIT-22c55e?style=for-the-badge" />
 
+[![templates](https://github.com/warsab/ml-algorithms/actions/workflows/templates.yml/badge.svg)](https://github.com/warsab/ml-algorithms/actions/workflows/templates.yml)
+
 </div>
 
 ---
@@ -85,13 +87,23 @@ picking an algorithm and starting with it are the same step.
 Each file runs standalone against generated example data:
 
 ```bash
-pip install scikit-learn numpy pandas
+pip install -r requirements.txt
 python regression/linear_regression.py
 ```
 
-Every template generates its own sample data via scikit-learn's `make_*` helpers, so
-each file executes as-is. Replace that block with your own dataset to put the model
-to work.
+Every template generates its own sample data, so each file executes as-is — no
+dataset needed to try one out. Replace that block with your own data to put the
+model to work.
+
+**Every template is executed on each push** by the [templates workflow](.github/workflows/templates.yml),
+against Python 3.9 and 3.12, so nothing here silently rots.
+
+Templates that plot call `plt.show()`. On a machine with no display, set
+`MPLBACKEND=Agg` to stop that blocking:
+
+```bash
+MPLBACKEND=Agg python unsupervised/dbscan.py
+```
 
 ---
 
