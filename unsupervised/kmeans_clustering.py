@@ -21,6 +21,7 @@ When to use KMeans Clustering:
 #================================================================ Template:
 #====== Importing needed libraries:
 from sklearn.cluster import KMeans
+from sklearn.metrics import silhouette_score
 from sklearn.datasets import make_blobs
 import matplotlib.pyplot as plt
 
@@ -45,6 +46,22 @@ plt.xlabel('Feature 1')
 plt.ylabel('Feature 2')
 plt.legend()
 plt.show()
+
+#====== Evaluate the clustering:
+labels = kmeans_model.labels_
+
+print(f"Clusters: {len(set(labels))}")
+for cluster_id in sorted(set(labels)):
+    print(f"  cluster {cluster_id}: {list(labels).count(cluster_id)} points")
+
+# Inertia is the within-cluster sum of squares - lower is tighter, but it always
+# falls as k rises, so it is only meaningful when comparing runs at different k.
+print(f"Inertia: {kmeans_model.inertia_:.2f}")
+
+# Silhouette score rates how well each point sits in its cluster, from -1 to 1,
+# and unlike inertia it does not automatically improve with more clusters.
+print(f"Silhouette score: {silhouette_score(X, labels):.4f}")
+
 
 #================================================================ Notes on Model construction:
 '''

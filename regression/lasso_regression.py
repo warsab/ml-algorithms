@@ -20,7 +20,8 @@ When to use Lasso Regression:
 from sklearn.linear_model import Lasso
 from sklearn.datasets import make_regression
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import mean_squared_error
+from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
+from sklearn.model_selection import cross_val_score
 
 #====== Generate some example data (replace this with your actual data):
 X, y = make_regression(n_samples=1000, n_features=20, noise=0.1, random_state=42)
@@ -43,7 +44,21 @@ y_pred = lasso_regressor.predict(X_test)
 
 # Calculate Mean Squared Error
 mse = mean_squared_error(y_test, y_pred)
-print("Mean Squared Error:", mse)
+rmse = mse ** 0.5
+mae = mean_absolute_error(y_test, y_pred)
+r2 = r2_score(y_test, y_pred)
+
+#====== MSE on its own is hard to interpret, because it is in squared units and
+#       has no fixed scale. RMSE is back in the units of the target, MAE is less
+#       sensitive to outliers, and R2 says how much variance the model explains:
+print(f"MSE  (mean squared error):   {mse:.4f}")
+print(f"RMSE (root mean sq. error):  {rmse:.4f}")
+print(f"MAE  (mean absolute error):  {mae:.4f}")
+print(f"R2   (variance explained):   {r2:.4f}")
+
+#====== Cross-validation across 5 folds, scored by R2:
+cv_scores = cross_val_score(lasso_regressor, X, y, cv=5, scoring="r2")
+print(f"\n5-fold CV R2: {cv_scores.mean():.4f} (+/- {cv_scores.std():.4f})")
 
 #================================================================ Notes on Model construction:
 '''

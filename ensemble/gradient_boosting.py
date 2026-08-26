@@ -26,7 +26,8 @@ When to use Gradient Boosting:
 from sklearn.ensemble import GradientBoostingClassifier
 from sklearn.datasets import make_classification
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import accuracy_score
+from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
+from sklearn.model_selection import cross_val_score
 
 #====== Generate some example data (replace this with your actual data):
 X, y = make_classification(n_samples = 1000, n_features = 20, n_classes = 2, random_state = 42)
@@ -49,7 +50,20 @@ y_pred = gradient_boosting_classifier.predict(X_test)
 
 # Calculate accuracy
 accuracy = accuracy_score(y_test, y_pred)
-print("Accuracy:", accuracy)
+print(f"Accuracy: {accuracy:.4f}")
+
+#====== Accuracy alone hides per-class performance and is misleading when the
+#       classes are imbalanced. Precision, recall and F1 per class tell you more:
+print("\nClassification report:")
+print(classification_report(y_test, y_pred))
+
+print("Confusion matrix (rows = actual, columns = predicted):")
+print(confusion_matrix(y_test, y_pred))
+
+#====== A single train/test split can be lucky. Cross-validation refits the model
+#       across k folds and reports the spread, which is a far more honest estimate:
+cv_scores = cross_val_score(gradient_boosting_classifier, X, y, cv=5)
+print(f"\n5-fold CV accuracy: {cv_scores.mean():.4f} (+/- {cv_scores.std():.4f})")
 
 #================================================================ Notes on Model construction:
 '''

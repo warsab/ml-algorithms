@@ -21,6 +21,7 @@ When to use DBSCAN:
 #================================================================ Template:
 #====== Importing needed libraries:
 from sklearn.cluster import DBSCAN
+from sklearn.metrics import silhouette_score
 from sklearn.datasets import make_blobs
 import matplotlib.pyplot as plt
 
@@ -45,19 +46,40 @@ plt.ylabel('Feature 2')
 plt.colorbar(label='Cluster Label')
 plt.show()
 
+#====== Evaluate the clustering:
+# DBSCAN labels noise points as -1, so exclude them from the cluster count.
+labels = dbscan_model.labels_
+n_clusters = len(set(labels)) - (1 if -1 in labels else 0)
+n_noise = list(labels).count(-1)
+
+print(f"Clusters found: {n_clusters}")
+print(f"Noise points:   {n_noise} of {len(labels)}")
+
+# Silhouette score rates how well each point sits in its cluster, from -1 to 1.
+# It needs at least two clusters, and noise points are excluded from the score.
+if n_clusters > 1:
+    mask = labels != -1
+    print(f"Silhouette score: {silhouette_score(X[mask], labels[mask]):.4f}")
+
+
 #================================================================ Notes on Model construction:
 '''
-Make_classification model:
-This is a function provided by scikit-learn that generates a random n-class classification problem.
+Make_blobs model:
+This is a function provided by scikit-learn that generates isotropic Gaussian blobs - the
+natural fit for demonstrating a clustering algorithm, since the data genuinely contains
+groups to be found.
+
+(make_classification is the equivalent for supervised problems. It is the wrong tool here:
+it builds a labelled classification problem rather than natural clusters, and it rejects
+n_features=2 outright because its default n_informative + n_redundant already sum to 4.)
 
 Parameters:
->   n_samples: It specifies the number of samples to generate. Each sample is a data point.
+>   n_samples: It specifies the total number of points, divided roughly equally among the clusters.
+>   centers: It specifies how many cluster centres to generate, or their fixed locations.
 >   n_features: It specifies the number of features (or dimensions) of each sample. Each feature is a characteristic
     or attribute of the data point.
->   n_classes: It specifies the number of classes (or categories) of the target variable.
-    In a binary classification problem, n_classes is typically set to 2.
->   n_clusters_per_class: It specifies the number of clusters per class. 
-    This parameter controls the separation of the classes. Higher values lead to more separated clusters.
+>   cluster_std: The standard deviation of each cluster. Smaller values give tighter, better
+    separated blobs; larger values make the clusters overlap and become harder to recover.
 >   random_state: It controls the random seed for reproducibility. When you set random_state to a specific value,
     the generated data will be the same each time you run the code, which is useful for reproducibility.
 

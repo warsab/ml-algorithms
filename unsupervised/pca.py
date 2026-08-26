@@ -44,6 +44,18 @@ plt.xlabel('Principal Component 1')
 plt.ylabel('Principal Component 2')
 plt.show()
 
+#====== Evaluate the decomposition:
+# Explained variance ratio says how much of the original signal each component
+# retains. The cumulative figure is what you use to pick how many to keep.
+explained = pca_model.explained_variance_ratio_
+
+for i, ratio in enumerate(explained, start=1):
+    print(f"  PC{i}: {ratio:.4f} ({ratio * 100:.2f}% of variance)")
+
+print(f"\nTotal variance retained by {len(explained)} components: {explained.sum() * 100:.2f}%")
+print(f"Original shape: {X.shape}  ->  reduced shape: {X_pca.shape}")
+
+
 #================================================================ Notes on Model construction:
 '''
 Make_classification model:
